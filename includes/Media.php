@@ -49,40 +49,6 @@ final class Media
      */
     public static function manifest_screenshots(\WP_Post $app): array
     {
-        $wide_id = self::field_id($app->ID, 'pwa_screenshot_wide');
-        $narrow_id = self::field_id($app->ID, 'pwa_screenshot_narrow');
-        $screenshots = [];
-
-        if ($wide_id > 0) {
-            $wide_url = wp_get_attachment_image_url($wide_id, 'wp-pwa-screenshot-wide');
-
-            if ($wide_url) {
-                $screenshots[] = [
-                    'src' => $wide_url,
-                    'sizes' => '1280x720',
-                    'type' => self::mime_type($wide_id),
-                    'form_factor' => 'wide',
-                ];
-            }
-        }
-
-        if ($narrow_id > 0) {
-            $narrow_url = wp_get_attachment_image_url($narrow_id, 'wp-pwa-screenshot-narrow');
-
-            if ($narrow_url) {
-                $screenshots[] = [
-                    'src' => $narrow_url,
-                    'sizes' => '390x844',
-                    'type' => self::mime_type($narrow_id),
-                    'form_factor' => 'narrow',
-                ];
-            }
-        }
-
-        if ($screenshots !== []) {
-            return $screenshots;
-        }
-
         return [
             [
                 'src' => PWA_Endpoints::asset_url($app, 'screenshot-wide'),
@@ -115,12 +81,5 @@ final class Media
     public static function app_icon_id(\WP_Post $app): int
     {
         return self::field_id($app->ID, 'pwa_app_icon');
-    }
-
-    private static function mime_type(int $attachment_id): string
-    {
-        $mime_type = get_post_mime_type($attachment_id);
-
-        return is_string($mime_type) && $mime_type !== '' ? $mime_type : 'image/png';
     }
 }

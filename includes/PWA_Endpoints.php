@@ -274,6 +274,16 @@ final class PWA_Endpoints
             return false;
         }
 
+        $current_size = $editor->get_size();
+
+        if (
+            !is_array($current_size)
+            || (int) ($current_size['width'] ?? 0) !== $size
+            || (int) ($current_size['height'] ?? 0) !== $size
+        ) {
+            return false;
+        }
+
         nocache_headers();
         header('Content-Type: image/png');
 
