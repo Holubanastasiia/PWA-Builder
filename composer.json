@@ -1,0 +1,19 @@
+{
+  "name": "anastasiia/wp-pwa-builder",
+  "description": "WordPress plugin foundation for building multiple PWA experiences.",
+  "version": "0.1.2",
+  "type": "wordpress-plugin",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "WP_PWA_Builder\\": "includes/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true
+  },
+  "scripts": {
+    "dump": "composer dump-autoload -o"
+  }
+}

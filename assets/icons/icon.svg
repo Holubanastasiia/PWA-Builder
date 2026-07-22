@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="PWA app icon">
+  <rect width="512" height="512" rx="96" fill="#121212"/>
+  <path fill="#ffffff" d="M142 152h132c60 0 100 36 100 91s-40 91-100 91h-55v82h-77V152Zm77 123h43c22 0 35-12 35-32s-13-32-35-32h-43v64Z"/>
+  <circle cx="367" cy="368" r="48" fill="#22c55e"/>
+</svg>

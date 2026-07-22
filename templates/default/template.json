@@ -1,0 +1,7 @@
+{
+  "name": "Default",
+  "niches": ["igaming", "insurance"],
+  "template": "template.php",
+  "styles": [],
+  "scripts": []
+}
