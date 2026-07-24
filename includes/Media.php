@@ -4,23 +4,24 @@ declare(strict_types=1);
 
 namespace WP_PWA_Builder;
 
+use WP_PWA_Builder\Image_Assets\PWA_Image_Generator;
+
 if (!defined('ABSPATH')) {
     exit;
 }
 
 final class Media
 {
-    public function hooks(): void
+    private PWA_Image_Generator $image_generator;
+
+    public function __construct()
     {
-        add_action('after_setup_theme', [$this, 'register_image_sizes']);
+        $this->image_generator = new PWA_Image_Generator();
     }
 
-    public function register_image_sizes(): void
+    public function hooks(): void
     {
-        add_image_size('wp-pwa-icon-192', 192, 192, true);
-        add_image_size('wp-pwa-icon-512', 512, 512, true);
-        add_image_size('wp-pwa-screenshot-wide', 1280, 720, true);
-        add_image_size('wp-pwa-screenshot-narrow', 390, 844, true);
+        $this->image_generator->hooks();
     }
 
     /**
@@ -67,19 +68,21 @@ final class Media
 
     private static function field_id(int $post_id, string $field_name): int
     {
-        if (function_exists('get_field')) {
-            $acf_value = absint(get_field($field_name, $post_id, false));
-
-            if ($acf_value > 0) {
-                return $acf_value;
-            }
-        }
-
         return absint(get_post_meta($post_id, $field_name, true));
     }
 
     public static function app_icon_id(\WP_Post $app): int
     {
         return self::field_id($app->ID, 'pwa_app_icon');
+    }
+
+    public static function app_screenshot_wide_id(\WP_Post $app): int
+    {
+        return self::field_id($app->ID, 'pwa_screenshot_wide');
+    }
+
+    public static function app_screenshot_narrow_id(\WP_Post $app): int
+    {
+        return self::field_id($app->ID, 'pwa_screenshot_narrow');
     }
 }

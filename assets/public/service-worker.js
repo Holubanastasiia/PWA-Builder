@@ -19,30 +19,50 @@ function shouldHandleRequest(request) {
   return true;
 }
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(cacheName).then((cache) => {
-      if (!pwaConfig.offlineUrl) {
-        return undefined;
-      }
+function shouldCacheRequest(request, response) {
+  if (!shouldHandleRequest(request)) {
+    return false;
+  }
 
-      return cache.add(new Request(pwaConfig.offlineUrl, { credentials: 'same-origin' }));
-    })
-  );
+  if (!response || response.status !== 200 || response.type !== 'basic') {
+    return false;
+  }
+
+  const url = new URL(request.url);
+
+  if (url.search) {
+    return false;
+  }
+
+  if (
+    url.pathname.endsWith('/start/') ||
+    url.pathname.endsWith('/manifest.webmanifest') ||
+    url.pathname.endsWith('/sw.js') ||
+    url.pathname.includes('/wp-admin/') ||
+    url.pathname.includes('/wp-json/')
+  ) {
+    return false;
+  }
+
+  return ['style', 'script', 'image', 'font'].includes(request.destination);
+}
+
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key.startsWith('wp-pwa-builder-') && key !== cacheName)
-          .map((key) => caches.delete(key))
+    caches.keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key.startsWith('wp-pwa-builder-') && key !== cacheName)
+            .map((key) => caches.delete(key))
+        )
       )
-    )
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
@@ -53,7 +73,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
+        if (!shouldCacheRequest(event.request, response)) {
           return response;
         }
 
@@ -65,6 +85,6 @@ self.addEventListener('fetch', (event) => {
 
         return response;
       })
-      .catch(() => caches.match(event.request).then((cached) => cached || caches.match(pwaConfig.offlineUrl)))
+      .catch(() => caches.match(event.request))
   );
 });

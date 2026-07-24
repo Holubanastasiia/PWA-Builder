@@ -10,6 +10,8 @@ if (!defined('ABSPATH')) {
 
 final class Assets
 {
+    private const ASSET_VERSION = null;
+
     public function hooks(): void
     {
         add_action('wp_enqueue_scripts', [$this, 'enqueue_public_assets']);
@@ -41,7 +43,7 @@ final class Assets
             'wp-pwa-builder-admin',
             WP_PWA_BUILDER_URL . 'assets/admin/pwa-admin.js',
             [],
-            WP_PWA_BUILDER_VERSION,
+            self::ASSET_VERSION,
             true
         );
 
@@ -66,7 +68,7 @@ final class Assets
             $handle,
             WP_PWA_BUILDER_URL . $script,
             [],
-            WP_PWA_BUILDER_VERSION,
+            self::ASSET_VERSION,
             true
         );
 
@@ -127,7 +129,7 @@ final class Assets
                 'wp-pwa-builder-template-' . sanitize_key((string) $index),
                 $this->template_asset_url($template, $style),
                 [],
-                WP_PWA_BUILDER_VERSION
+                self::ASSET_VERSION
             );
         }
 
@@ -136,7 +138,7 @@ final class Assets
                 'wp-pwa-builder-template-' . sanitize_key((string) $index),
                 $this->template_asset_url($template, $script),
                 [],
-                WP_PWA_BUILDER_VERSION,
+                self::ASSET_VERSION,
                 true
             );
         }

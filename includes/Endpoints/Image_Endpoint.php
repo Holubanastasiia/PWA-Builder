@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WP_PWA_Builder\Endpoints;
 
+use WP_PWA_Builder\Image_Assets\PWA_Image_Generator;
 use WP_PWA_Builder\Media;
 
 if (!defined('ABSPATH')) {
@@ -12,10 +13,25 @@ if (!defined('ABSPATH')) {
 
 final class Image_Endpoint
 {
+    private PWA_Image_Generator $image_generator;
+
+    public function __construct()
+    {
+        $this->image_generator = new PWA_Image_Generator();
+    }
+
     public function serve_icon(\WP_Post $app, int $size): void
     {
         if (!in_array($size, [192, 512], true)) {
             status_header(404);
+            exit;
+        }
+
+        if ($this->serve_file($this->image_generator->icon_path($app, $size))) {
+            exit;
+        }
+
+        if ($this->image_generator->generate_icon($app, $size) && $this->serve_file($this->image_generator->icon_path($app, $size))) {
             exit;
         }
 
@@ -67,6 +83,15 @@ final class Image_Endpoint
         $is_wide = $asset === 'screenshot-wide';
         $width = $is_wide ? 1280 : 390;
         $height = $is_wide ? 720 : 844;
+
+        if ($this->serve_file($this->image_generator->screenshot_path($app, $asset))) {
+            exit;
+        }
+
+        if ($this->image_generator->generate_screenshot($app, $asset) && $this->serve_file($this->image_generator->screenshot_path($app, $asset))) {
+            exit;
+        }
+
         $theme_color = (string) get_post_meta($app->ID, '_pwa_theme_color', true);
         $background_color = $this->hex_to_rgb($theme_color ?: '#121212');
         $panel_color = $this->hex_to_rgb('#ffffff');
@@ -140,6 +165,28 @@ final class Image_Endpoint
         $streamed = $editor->stream('image/png');
 
         return !is_wp_error($streamed);
+    }
+
+    private function serve_file(string $path): bool
+    {
+        if ($path === '' || !is_readable($path)) {
+            return false;
+        }
+
+        clearstatcache(true, $path);
+
+        nocache_headers();
+        header('Content-Type: image/png');
+
+        $file_size = filesize($path);
+
+        if (is_int($file_size)) {
+            header('Content-Length: ' . $file_size);
+        }
+
+        readfile($path);
+
+        return true;
     }
 
     /**
