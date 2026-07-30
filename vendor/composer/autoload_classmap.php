@@ -7,9 +7,16 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
+    'WP_PWA_Builder\\ACF\\Location_PWA_Template' => $baseDir . '/includes/ACF/Location_PWA_Template.php',
     'WP_PWA_Builder\\ACF_JSON' => $baseDir . '/includes/ACF_JSON.php',
+    'WP_PWA_Builder\\ACF_Locations' => $baseDir . '/includes/ACF_Locations.php',
     'WP_PWA_Builder\\Assets' => $baseDir . '/includes/Assets.php',
+    'WP_PWA_Builder\\Endpoints\\Image_Endpoint' => $baseDir . '/includes/Endpoints/Image_Endpoint.php',
+    'WP_PWA_Builder\\Endpoints\\Manifest_Endpoint' => $baseDir . '/includes/Endpoints/Manifest_Endpoint.php',
+    'WP_PWA_Builder\\Endpoints\\Service_Worker_Endpoint' => $baseDir . '/includes/Endpoints/Service_Worker_Endpoint.php',
+    'WP_PWA_Builder\\Endpoints\\Start_Endpoint' => $baseDir . '/includes/Endpoints/Start_Endpoint.php',
     'WP_PWA_Builder\\Environment' => $baseDir . '/includes/Environment.php',
+    'WP_PWA_Builder\\Image_Assets\\PWA_Image_Generator' => $baseDir . '/includes/Image_Assets/PWA_Image_Generator.php',
     'WP_PWA_Builder\\Media' => $baseDir . '/includes/Media.php',
     'WP_PWA_Builder\\Niche_Registry' => $baseDir . '/includes/Niche_Registry.php',
     'WP_PWA_Builder\\PWA_Endpoints' => $baseDir . '/includes/PWA_Endpoints.php',

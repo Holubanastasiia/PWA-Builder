@@ -5,6 +5,7 @@
 
   const config = window.wpPwaBuilder;
   const fallbackUiDelay = Number(config.fallbackUiDelay) >= 0 ? Number(config.fallbackUiDelay) : 1000;
+  const standaloneQuery = window.matchMedia ? window.matchMedia('(display-mode: standalone)') : null;
 
   function storageKey(name) {
     return ['wpPwaBuilder', config.appSlug || config.appId || 'app', name].join(':');
@@ -12,7 +13,7 @@
 
   function isStandalone() {
     return (
-      window.matchMedia('(display-mode: standalone)').matches ||
+      (standaloneQuery && standaloneQuery.matches) ||
       window.navigator.standalone === true
     );
   }

@@ -161,6 +161,11 @@ final class Post_Types
         $screenshot_narrow_id = $this->validated_image_id(isset($_POST['pwa_screenshot_narrow']) ? absint($_POST['pwa_screenshot_narrow']) : 0, 'Mobile screenshot');
         $niche = isset($_POST['wp_pwa_niche']) ? sanitize_key(wp_unslash($_POST['wp_pwa_niche'])) : 'igaming';
         $template = isset($_POST['wp_pwa_template']) ? sanitize_key(wp_unslash($_POST['wp_pwa_template'])) : 'default';
+
+        if (!isset(Niche_Registry::niches()[$niche])) {
+            $niche = 'igaming';
+        }
+
         $available_templates = Template_Registry::templates_for_niche($niche);
 
         if (!isset($available_templates[$template])) {

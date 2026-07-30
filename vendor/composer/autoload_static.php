@@ -22,9 +22,16 @@ class ComposerStaticInit911c002ea842b81fb30d735d184edf0e
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'WP_PWA_Builder\\ACF\\Location_PWA_Template' => __DIR__ . '/../..' . '/includes/ACF/Location_PWA_Template.php',
         'WP_PWA_Builder\\ACF_JSON' => __DIR__ . '/../..' . '/includes/ACF_JSON.php',
+        'WP_PWA_Builder\\ACF_Locations' => __DIR__ . '/../..' . '/includes/ACF_Locations.php',
         'WP_PWA_Builder\\Assets' => __DIR__ . '/../..' . '/includes/Assets.php',
+        'WP_PWA_Builder\\Endpoints\\Image_Endpoint' => __DIR__ . '/../..' . '/includes/Endpoints/Image_Endpoint.php',
+        'WP_PWA_Builder\\Endpoints\\Manifest_Endpoint' => __DIR__ . '/../..' . '/includes/Endpoints/Manifest_Endpoint.php',
+        'WP_PWA_Builder\\Endpoints\\Service_Worker_Endpoint' => __DIR__ . '/../..' . '/includes/Endpoints/Service_Worker_Endpoint.php',
+        'WP_PWA_Builder\\Endpoints\\Start_Endpoint' => __DIR__ . '/../..' . '/includes/Endpoints/Start_Endpoint.php',
         'WP_PWA_Builder\\Environment' => __DIR__ . '/../..' . '/includes/Environment.php',
+        'WP_PWA_Builder\\Image_Assets\\PWA_Image_Generator' => __DIR__ . '/../..' . '/includes/Image_Assets/PWA_Image_Generator.php',
         'WP_PWA_Builder\\Media' => __DIR__ . '/../..' . '/includes/Media.php',
         'WP_PWA_Builder\\Niche_Registry' => __DIR__ . '/../..' . '/includes/Niche_Registry.php',
         'WP_PWA_Builder\\PWA_Endpoints' => __DIR__ . '/../..' . '/includes/PWA_Endpoints.php',
