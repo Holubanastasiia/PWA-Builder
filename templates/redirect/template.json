@@ -1,7 +1,0 @@
-{
-  "name": "Redirect",
-  "template": "template.php",
-  "niches": ["igaming", "insurance"],
-  "styles": ["style.css"],
-  "scripts": []
-}

@@ -83,7 +83,7 @@ final class Assets
             'flow' => 'redirect_or_install',
             'isPreview' => is_preview(),
             'isLaunch' => $is_launch,
-            'redirectDelay' => (int) apply_filters('wp_pwa_builder_redirect_delay', 1200, $app),
+            'fallbackUiDelay' => (int) apply_filters('wp_pwa_builder_fallback_ui_delay', 1000, $app),
         ]);
 
         if (!$is_launch) {
@@ -107,6 +107,30 @@ final class Assets
         echo '<meta name="mobile-web-app-capable" content="yes">' . "\n";
         echo '<meta name="apple-mobile-web-app-capable" content="yes">' . "\n";
         printf('<meta name="apple-mobile-web-app-title" content="%s">' . "\n", esc_attr($this->app_short_name($app)));
+
+        if (!PWA_Endpoints::is_launch_request() && !is_preview()) {
+            $start_url = PWA_Endpoints::start_url($app);
+            ?>
+            <style>
+                @media (display-mode: standalone) {
+                    body.wp-pwa-builder-shell {
+                        opacity: 0;
+                    }
+                }
+            </style>
+            <script>
+                (function () {
+                    try {
+                        var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+
+                        if (standalone) {
+                            window.location.replace(<?php echo wp_json_encode($start_url, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>);
+                        }
+                    } catch (error) {}
+                })();
+            </script>
+            <?php
+        }
     }
 
     private function app_short_name(\WP_Post $app): string

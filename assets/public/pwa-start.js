@@ -4,7 +4,11 @@
   }
 
   const config = window.wpPwaBuilder;
-  const redirectDelay = Number(config.redirectDelay) >= 0 ? Number(config.redirectDelay) : 1200;
+  const fallbackUiDelay = Number(config.fallbackUiDelay) >= 0 ? Number(config.fallbackUiDelay) : 1000;
+
+  function storageKey(name) {
+    return ['wpPwaBuilder', config.appSlug || config.appId || 'app', name].join(':');
+  }
 
   function isStandalone() {
     return (
@@ -40,10 +44,11 @@
 
   function redirect() {
     const link = document.querySelector('[data-pwa-launch].analytic-url');
-    const targetUrl = link && link.href ? link.href : config.fallbackUrl;
+    const targetUrl = storedLaunchUrl() || (link && link.href ? link.href : config.fallbackUrl);
 
     if (!targetUrl) {
       track('redirect_failed', { reason: 'missing_target_url' });
+      showFallbackUi();
       return;
     }
 
@@ -56,14 +61,39 @@
     window.location.replace(targetUrl);
   }
 
+  function storedLaunchUrl() {
+    try {
+      return window.localStorage.getItem(storageKey('launchUrl')) || '';
+    } catch (error) {
+      track('launch_url_read_failed', { message: error.message });
+      return '';
+    }
+  }
+
+  function showFallbackUi() {
+    const start = document.querySelector('[data-pwa-start]');
+
+    if (start) {
+      start.classList.add('is-fallback-visible');
+    }
+  }
+
   const payload = {
     path: window.location.pathname,
     referrer: document.referrer || '',
     standalone: isStandalone(),
   };
 
-  track('installed_launch', payload);
+  track('app_open', payload);
   launch(payload);
 
-  window.setTimeout(redirect, redirectDelay);
+  const launchUrl = storedLaunchUrl();
+  const link = document.querySelector('[data-pwa-launch].analytic-url');
+
+  if (launchUrl && link) {
+    link.href = launchUrl;
+  }
+
+  window.setTimeout(showFallbackUi, fallbackUiDelay);
+  redirect();
 })();

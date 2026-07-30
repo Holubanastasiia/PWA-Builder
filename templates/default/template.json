@@ -1,7 +1,7 @@
 {
-  "name": "Default",
-  "niches": ["igaming", "insurance"],
+  "name": "Default Funnel",
+  "niches": ["igaming", "dating"],
   "template": "template.php",
-  "styles": [],
+  "styles": ["style.css"],
   "scripts": []
 }

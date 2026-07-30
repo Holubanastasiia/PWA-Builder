@@ -19,7 +19,7 @@ final class Niche_Registry
     {
         return apply_filters('wp_pwa_builder_niches', [
             'igaming' => __('iGaming', 'wp-pwa-builder'),
-            'insurance' => __('Insurance', 'wp-pwa-builder'),
+            'dating' => __('Dating', 'wp-pwa-builder'),
         ]);
     }
 

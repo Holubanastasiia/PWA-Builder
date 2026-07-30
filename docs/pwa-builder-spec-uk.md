@@ -66,10 +66,18 @@
 - cookies/localStorage для аналітики;
 - декодування та збереження `lead_info`, якщо використовується така модель;
 - збереження attribution/context для повторного відкриття встановленої PWA;
+- збереження фінального launch/offer URL для конкретної PWA після першого CTA/install flow;
 - webview escape (`intent://...package=com.android.chrome`, `x-safari-https://...`);
 - поведінку CTA/install button, якщо вона залежить від attribution/redirect логіки;
 - відправку visit/click/install/open/redirect events; (уточнити все у Макса)
 - підстановку параметрів у offer URL;
+
+Відомі backend endpoints для iGaming/PWA flow:
+
+```text
+visit/click -> https://ig-core-cdn.com/v1/v
+app_install -> https://ig-core-cdn.com/v1/action
+```
 
 PWA Builder має тільки давати йому контекст PWA App, DOM hooks і frontend events.
 
@@ -80,6 +88,7 @@ PWA Builder має тільки давати йому контекст PWA App, 
 - PWA Builder має рендерити CTA/redirect links з потрібними класами/атрибутами, щоб analytics plugin міг сам підставити параметри.
 - якщо використовується encoded payload типу `lead_info`, analytics plugin є власником його декодування, валідації та збереження;
 - якщо PWA відкривається з home screen без query params, analytics plugin має вміти відновити attribution з cookie/localStorage або іншого agreed storage.
+- для PWA допускається зберігати повний фінальний launch URL у localStorage, щоб повторне відкриття встановленої апки вело в той самий offer/application context, навіть якщо default offer у PWA App пізніше змінився.
 
 ### 2.3. Push / Central Push Management
 
@@ -308,7 +317,7 @@ Lanista
 Приклади:
 
 - `igaming`;
-- `insurance`;
+- `dating`;
 - інші ніші в майбутньому.
 
 Вимоги:
@@ -349,7 +358,7 @@ templates/
 ```json
 {
   "name": "App Store / Play Market",
-  "niches": ["igaming", "insurance"],
+  "niches": ["igaming", "dating"],
   "variants": {
     "android": {
       "template": "android/template.php",
@@ -612,9 +621,9 @@ Flow відповідає за поведінку.
 
 Один і той самий template може працювати з різними flows.
 
-## 13. Стартовий MVP: Redirect Template / Flow
+## 13. Стартовий MVP: Default Funnel / Redirect Flow
 
-Першим шаблоном варто зробити **redirect template/flow**.
+Першим шаблоном варто зробити **default funnel** з redirect/install flow.
 
 Це мінімальний PWA без повноцінного UI.
 
@@ -628,7 +637,7 @@ Flow відповідає за поведінку.
 - перевірити інтеграцію з аналітикою;
 - дати менеджерам можливість запускати тести без prelanding UI.
 
-Redirect MVP має орієнтуватися на перевірений патерн:
+Default funnel MVP має орієнтуватися на перевірений патерн:
 
 ```text
 first visit with params / lead_info
@@ -659,7 +668,7 @@ Analytics plugin у цьому flow відповідає за:
 - events delivery;
 - redirect decision.
 
-### 13.1. Redirect Template Fields
+### 13.1. Default Funnel Fields
 
 Потрібні поля:
 
@@ -689,12 +698,18 @@ Analytics plugin у цьому flow відповідає за:
 3. Підготувати install prompt.
 4. Показати мінімальний CTA/install UI, якщо потрібна дія юзера.
 5. На CTA click показати install prompt, якщо браузер дозволяє.
-6. Зберегти install decision як частину analytics-owned state, якщо це потрібно.
-7. Після install decision перейти на внутрішній start URL.
-8. При відкритті installed PWA браузер відкриває внутрішній launch URL з manifest `start_url`.
-9. На launch URL analytics plugin фіксує open/installed-launch event.
-10. Використати redirect link / CTA з класом `.analytic-url` або launch hook, який analytics plugin оновлює параметрами.
-11. Зробити redirect після того, як analytics plugin підготував URL або після узгодженого fallback timeout.
+6. Поки browser prompt відкритий, CTA має перейти у loading state.
+7. Якщо install успішний, CTA має змінити стан на `Open`.
+8. По кліку на `Open` перейти на внутрішній start URL.
+9. Якщо install prompt недоступний/відхилений/не спрацював, перейти на внутрішній start URL одразу.
+10. При відкритті installed PWA браузер відкриває внутрішній launch URL з manifest `start_url`.
+11. На launch URL analytics plugin фіксує open/installed-launch event.
+12. Використати redirect link / CTA з класом `.analytic-url` або launch hook, який analytics plugin оновлює параметрами.
+13. На `/start/` виконати redirect на збережений launch URL або fallback CTA URL.
+
+Якщо браузер після встановлення відкрив не `start_url`, а саму PWA landing page у standalone режимі, landing page має одразу перейти на `/start/` і не показувати template UI. Також потрібно обробляти зміну `display-mode` після `appinstalled`, бо браузер може перевести/відкрити PWA без повного reload сторінки.
+
+Щоб уникнути flash видимого template UI в standalone mode, PWA Builder має друкувати ранній guard у `<head>` на landing pages: приховати body через `@media (display-mode: standalone)` і одразу зробити redirect на `/start/`.
 
 Важливо:
 
@@ -724,7 +739,7 @@ iOS не має Android-style install prompt.
 - це має робити analytics plugin;
 - PWA Builder тільки дає стабільний URL/template context.
 
-### 13.5. Події Redirect Flow
+### 13.5. Події Default Funnel / Redirect Flow
 
 PWA Builder має emit events, але не відправляти їх сам:
 
@@ -1159,6 +1174,22 @@ Duplicate/clone для MVP не реалізуємо всередині PWA Buil
 
 ACF JSON використовуємо для field groups.
 
+PWA Builder має кастомне ACF location rule:
+
+```text
+PWA Builder -> PWA Template
+```
+
+Це правило дозволяє прив'язувати field groups до template-ів, які реєструються через `templates/{template}/template.json`, наприклад:
+
+```text
+Post Type is equal to PWA App
+AND
+PWA Template is equal to Default Funnel
+```
+
+ACF `Post Template` не використовується для PWA templates, бо він працює зі стандартними WordPress theme templates, а не з template registry плагіна.
+
 Рекомендація:
 
 - core PWA fields - окрема group;
@@ -1238,7 +1269,7 @@ PWA Builder не реалізує ці правила, але має дати in
 
 ## 22. Фази Розробки
 
-### Phase 1: Core PWA Builder + Redirect MVP
+### Phase 1: Core PWA Builder + Default Funnel MVP
 
 - CPT `pwa_app`.
 - Basic settings.
@@ -1249,8 +1280,8 @@ PWA Builder не реалізує ці правила, але має дати in
 - Service worker endpoint.
 - Icon/screenshot fields.
 - Default template.
-- Redirect template.
-- Redirect/install flow.
+- Default funnel template.
+- Default funnel redirect/install flow.
 - CTA/redirect links з `.analytic-url`.
 - Frontend events.
 - Internal `/apps/{slug}/start/` endpoint.
@@ -1267,6 +1298,7 @@ PWA Builder не реалізує ці правила, але має дати in
 - Перевірка, що analytics plugin коректно оновлює `.analytic-url`.
 - Internal launch URL у `start_url` для installed PWA.
 - App-open / installed-launch event перед redirect to offer.
+- Повний launch URL, збережений після CTA/install flow, має використовуватись на `/start/` пріоритетно перед default CTA URL.
 - Webview escape залишається в analytics plugin.
 
 ### Phase 3: OS Variants
@@ -1298,14 +1330,57 @@ PWA Builder не реалізує ці правила, але має дати in
 - Push plugin integration.
 - Central push management / analytics integration.
 - Independent cloak plugin integration.
+- Optional WordPress Abilities API layer for admin diagnostics and automation.
 - Logs/history.
 - Compatibility notes for Yoast Duplicate Post.
 - Додаткові інтеграції тільки якщо з'явиться реальна потреба.
 
-## 23. Питання До Ліда
+## 23. WordPress Abilities API
+
+WordPress Abilities API не є частиною MVP.
+
+Це майбутній optional layer для discoverable admin/developer actions, діагностики та автоматизації.
+
+Abilities API не має заміняти:
+
+- CPT `pwa_app`;
+- metaboxes / ACF fields;
+- rewrite endpoints;
+- REST/API контракт з analytics plugin;
+- WordPress capabilities/roles.
+
+Потенційні abilities для майбутніх фаз:
+
+- `wp-pwa-builder/list-apps` - повернути список PWA Apps;
+- `wp-pwa-builder/get-app-config` - повернути конфіг конкретної PWA;
+- `wp-pwa-builder/validate-app` - перевірити, чи PWA готова до запуску;
+- `wp-pwa-builder/generate-manifest-assets` - перегенерувати manifest images;
+- `wp-pwa-builder/preview-launch-flow` - повернути діагностику landing/manifest/sw/start/offer flow;
+- `wp-pwa-builder/sync-template-registry` - перечитати доступні templates;
+- `wp-pwa-builder/get-install-readiness` - перевірити installability requirements.
+
+Основний кейс:
+
+```text
+швидко перевіряти багато PWA на домені або багатьох доменах:
+- чи є іконки;
+- чи валідний manifest;
+- чи існує service worker;
+- чи заданий offer URL;
+- чи template відповідає niche;
+- чи start endpoint доступний.
+```
+
+Рішення:
+
+- не додавати Abilities API у Phase 1;
+- повернутися до нього після стабілізації PWA Builder MVP та analytics contract;
+- використовувати тільки з перевіркою сумісності з WordPress 6.9+.
+
+## 24. Питання До Ліда
 
 - Чи погоджуємо, що PWA Builder не відповідає за analytics/push/cloak? - так
-- Чи стартуємо з redirect template як MVP? - так
+- Чи стартуємо з default funnel як MVP? - так
 - Який default behavior для Android?
 - Який default behavior для iOS?
 - Чи iOS має одразу редіректити, чи показувати інструкцію? - одразу редірект
@@ -1317,8 +1392,8 @@ PWA Builder не реалізує ці правила, але має дати in
 - Чи погоджуємо модель `/apps/{slug}/start/` як аналог technical `/play/`, але без переносу analytics logic у PWA Builder?
 - Чи `lead_info` / `lead_uuid` / `offer_url` повністю залишаються у зоні analytics plugin?
 - Чи analytics plugin бере на себе webview escape для Meta/Instagram traffic? - так, ця логіка вже є в аналітиці
-- Який fallback має бути на `/start/`, якщо analytics plugin не знайшов attribution або offer URL?
-- Скільки PWA Builder має чекати analytics plugin перед fallback redirect / fallback screen?
+- Який fallback має бути на `/start/`, якщо localStorage launch URL відсутній або невалідний? - використовувати default CTA URL з PWA App
+- Скільки PWA Builder має чекати перед fallback screen? - приблизно 1000ms, redirect має стартувати одразу
 - Чи вистачає стандартних WP statuses `draft/publish/trash` для MVP? - так
 - Чи один PWA App = одна кампанія, один offer, чи один creative? - ні, можна буде робити клон і використовувати одну апку під багато кампаній
 - Чи потрібні preview links? - швидше за все так
@@ -1327,8 +1402,9 @@ PWA Builder не реалізує ці правила, але має дати in
 - Чи Android/iOS різницю вирішуємо через template variants, split plugin, чи обома способами?
 - Чи interactive components робимо як developer-owned components з ACF settings? - робимо, це просто легше для нас, щоб створювати різні темплейти які можуть мати якісь спільні елементи
 - Чи клоаку точно виносимо в незалежний plugin? Рекомендація: так. - так, однозначно
+- Чи погоджуємо, що WordPress Abilities API не входить в MVP, але може бути майбутнім шаром для діагностики/автоматизації?
 
-## 24. Поточне Рішення
+## 25. Поточне Рішення
 
 Поточна рекомендована архітектура:
 
@@ -1344,6 +1420,13 @@ PWA Builder не реалізує ці правила, але має дати in
 - PWA Builder тільки дає hooks/events і рендерить CTA/redirect links з `.analytic-url`.
 - `manifest.start_url` має вести на внутрішній `/apps/{slug}/start/`.
 - `/apps/{slug}/start/` є technical launch shell для installed PWA і redirect flow.
+- Після CTA/install flow зберігаємо повний фінальний launch URL у localStorage для конкретної PWA.
+- `/apps/{slug}/start/` спочатку бере launch URL з localStorage, якщо він є, і тільки потім fallback на default CTA URL з PWA App.
+- `/apps/{slug}/start/` має диспатчити `app_open` перед redirect, а analytics plugin має доставити цей event.
+- CTA click має відправлятися PWA analytics plugin як `click` на `https://ig-core-cdn.com/v1/v`.
+- `app_install` має відправлятися PWA analytics plugin на `https://ig-core-cdn.com/v1/action`.
+- `visit/click` для iGaming flow мають відправлятися на `https://ig-core-cdn.com/v1/v`.
 - BetterLinks-подібну модель `landing -> play/start -> offer` беремо як патерн, але реалізуємо через наші окремі плагіни.
-- `lead_info`, localStorage attribution, webview escape, offer URL і event delivery залишаються в analytics plugin.
-- Стартувати з redirect template/flow + internal start endpoint.
+- `lead_info`, attribution, webview escape і event delivery залишаються в analytics plugin.
+- Стартувати з default funnel + internal start endpoint.
+- WordPress Abilities API не використовувати в MVP; залишити як future optional layer для admin diagnostics/developer automation.

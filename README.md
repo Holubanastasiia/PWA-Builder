@@ -19,7 +19,7 @@ Starter WordPress plugin for serving many PWA experiences from one domain.
 Create a folder in `templates/`:
 
 ```text
-templates/insurance-quote/
+templates/dating-offer/
   template.json
   template.php
   style.css
@@ -30,8 +30,8 @@ Example `template.json`:
 
 ```json
 {
-  "name": "Insurance Quote",
-  "niches": ["insurance"],
+  "name": "Dating Offer",
+  "niches": ["dating"],
   "template": "template.php",
   "styles": ["style.css"],
   "scripts": ["script.js"]
@@ -48,7 +48,15 @@ ACF field groups should be managed through the ACF UI and synced through:
 acf-json/
 ```
 
-Use location rules for `Post Type is equal to PWA App`. Template-specific field groups can additionally use field names/prefixes that match the template key.
+Use location rules for `Post Type is equal to PWA App`.
+
+Template-specific field groups can use the custom ACF location rule:
+
+```text
+PWA Builder -> PWA Template is equal to Default Funnel
+```
+
+This rule checks the PWA Builder template selected in the `PWA Settings` metabox.
 
 ## Local and production URLs
 

@@ -209,7 +209,7 @@ The builder must support multiple niches.
 Examples:
 
 - `igaming`
-- `insurance`
+- `dating`
 
 Requirements:
 
@@ -260,7 +260,7 @@ Example:
 ```json
 {
   "name": "App Store / Play Market",
-  "niches": ["igaming", "insurance"],
+  "niches": ["igaming", "dating"],
   "variants": {
     "android": {
       "template": "android/template.php",
@@ -736,7 +736,7 @@ This should be treated as a starter template and/or starter flow.
 Suggested template slug:
 
 ```text
-redirect
+default
 ```
 
 Suggested flow slug:
@@ -745,7 +745,7 @@ Suggested flow slug:
 redirect_or_install
 ```
 
-### Redirect Template Fields
+### Default Funnel Fields
 
 Required fields:
 
@@ -834,7 +834,7 @@ The analytics plugin decides which of these events are sent to external analytic
 
 The final offer URL must be produced by the analytics/tracking layer or through a shared URL builder.
 
-The redirect template must not hardcode parameter mapping.
+The default funnel template must not hardcode parameter mapping.
 
 Required:
 
@@ -844,7 +844,7 @@ Required:
 
 ### MVP Recommendation
 
-Start with the redirect template/flow before building visual templates.
+Start with the default funnel redirect flow before building visual templates.
 
 Reason:
 

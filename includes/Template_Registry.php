@@ -142,7 +142,7 @@ final class Template_Registry
         return [
             'name' => isset($config['name']) && is_string($config['name']) ? $config['name'] : ucwords(str_replace(['-', '_'], ' ', $template_key)),
             'file' => $template_path,
-            'niches' => self::string_list($config['niches'] ?? ['igaming', 'insurance']),
+            'niches' => self::string_list($config['niches'] ?? ['igaming', 'dating']),
             'styles' => self::string_list($config['styles'] ?? []),
             'scripts' => self::string_list($config['scripts'] ?? []),
             'dir' => wp_normalize_path($template_dir),

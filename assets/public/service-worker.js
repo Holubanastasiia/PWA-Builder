@@ -19,8 +19,16 @@ function shouldHandleRequest(request) {
   return true;
 }
 
+function isStaticAssetRequest(request) {
+  return ['style', 'script', 'image', 'font'].includes(request.destination);
+}
+
 function shouldCacheRequest(request, response) {
   if (!shouldHandleRequest(request)) {
+    return false;
+  }
+
+  if (!isStaticAssetRequest(request)) {
     return false;
   }
 
@@ -44,7 +52,7 @@ function shouldCacheRequest(request, response) {
     return false;
   }
 
-  return ['style', 'script', 'image', 'font'].includes(request.destination);
+  return true;
 }
 
 self.addEventListener('install', () => {
@@ -66,7 +74,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (!shouldHandleRequest(event.request)) {
+  if (!shouldHandleRequest(event.request) || !isStaticAssetRequest(event.request)) {
     return;
   }
 
@@ -85,6 +93,6 @@ self.addEventListener('fetch', (event) => {
 
         return response;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() => caches.match(event.request).then((cached) => cached || Response.error()))
   );
 });
