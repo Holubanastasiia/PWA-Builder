@@ -85,7 +85,10 @@
     standalone: isStandalone(),
   };
 
-  track('app_open', payload);
+  if (payload.standalone) {
+    track('app_open', payload);
+  }
+
   launch(payload);
 
   const launchUrl = storedLaunchUrl();

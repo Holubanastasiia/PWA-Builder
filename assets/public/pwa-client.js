@@ -7,6 +7,7 @@
   const standaloneQuery = window.matchMedia ? window.matchMedia('(display-mode: standalone)') : null;
   let deferredPrompt = null;
   let installed = false;
+  let installTracked = false;
 
   function storageKey(name) {
     return ['wpPwaBuilder', config.appSlug || config.appId || 'app', name].join(':');
@@ -73,6 +74,15 @@
     );
 
     return Promise.resolve();
+  }
+
+  function trackAppInstall(payload) {
+    if (installTracked) {
+      return;
+    }
+
+    installTracked = true;
+    track('app_install', payload);
   }
 
   function isStandalone() {
@@ -143,6 +153,10 @@
         track(choice.outcome === 'accepted' ? 'install_prompt_accepted' : 'install_prompt_dismissed', {
           outcome: choice.outcome,
         });
+
+        if (installAccepted) {
+          trackAppInstall({ source: 'prompt_user_choice', outcome: choice.outcome });
+        }
       } catch (error) {
         track('install_prompt_failed', { message: error.message });
       }
@@ -179,7 +193,6 @@
 
   window.addEventListener('appinstalled', function () {
     installed = true;
-    track('app_install');
 
     document.querySelectorAll('[data-pwa-install]').forEach(function (target) {
       setButtonState(target, 'ready');
