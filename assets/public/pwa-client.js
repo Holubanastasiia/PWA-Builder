@@ -8,6 +8,77 @@
   let deferredPrompt = null;
   let installed = false;
   let installTracked = false;
+  let deferredPromptWaiters = [];
+  const DEFERRED_PROMPT_WAIT_MS = 1500;
+
+  function waitForDeferredPrompt(timeoutMs) {
+    if (deferredPrompt) {
+      return Promise.resolve(deferredPrompt);
+    }
+
+    return new Promise(function (resolve) {
+      let settled = false;
+
+      const waiter = function (event) {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        resolve(event);
+      };
+
+      deferredPromptWaiters.push(waiter);
+
+      window.setTimeout(function () {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        deferredPromptWaiters = deferredPromptWaiters.filter(function (item) {
+          return item !== waiter;
+        });
+        resolve(null);
+      }, timeoutMs);
+    });
+  }
+
+  let appInstalledWaiters = [];
+  const APP_INSTALLED_WAIT_MS = 10000;
+
+  function waitForAppInstalled(timeoutMs) {
+    if (installed) {
+      return Promise.resolve(true);
+    }
+
+    return new Promise(function (resolve) {
+      let settled = false;
+
+      const waiter = function () {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        resolve(true);
+      };
+
+      appInstalledWaiters.push(waiter);
+
+      window.setTimeout(function () {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        appInstalledWaiters = appInstalledWaiters.filter(function (item) {
+          return item !== waiter;
+        });
+        resolve(false);
+      }, timeoutMs);
+    });
+  }
 
   function storageKey(name) {
     return ['wpPwaBuilder', config.appSlug || config.appId || 'app', name].join(':');
@@ -61,7 +132,23 @@
     target.textContent = target.dataset.pwaOriginalLabel || buttonLabel(target, 'default', 'Continue');
   }
 
+  //debugging function. delete after debug
+  function isDebugEnabled() {
+    try {
+      if (/[?&]pwa_debug=1\b/.test(window.location.search)) {
+        window.localStorage.setItem(storageKey('debug'), '1');
+      }
+
+      return window.localStorage.getItem(storageKey('debug')) === '1';
+    } catch (error) {
+      return false;
+    }
+  }
+
   function track(type, payload) {
+    if (isDebugEnabled()) {
+      console.log('[wp-pwa-builder]', type, payload || {});
+    }
     window.dispatchEvent(
       new CustomEvent('wp-pwa-builder:track', {
         detail: {
@@ -117,7 +204,6 @@
 
   async function handleInstallClick(event, target) {
     event.preventDefault();
-
     if (target.dataset.pwaState === 'ready' || installed) {
       redirectToStart({ installType: 'install', href: target.href || '', action: 'open' });
       return;
@@ -142,12 +228,14 @@
     setButtonState(target, 'loading');
     rememberLaunchUrl(target, installType);
 
-    if (deferredPrompt) {
+    const promptEvent = await waitForDeferredPrompt(DEFERRED_PROMPT_WAIT_MS);
+
+    if (promptEvent) {
       track('install_prompt_shown');
-      deferredPrompt.prompt();
+      promptEvent.prompt();
 
       try {
-        const choice = await deferredPrompt.userChoice;
+        const choice = await promptEvent.userChoice;
         installType = choice.outcome === 'accepted' ? 'install' : 'redirect';
         installAccepted = choice.outcome === 'accepted';
         track(choice.outcome === 'accepted' ? 'install_prompt_accepted' : 'install_prompt_dismissed', {
@@ -169,6 +257,8 @@
     rememberLaunchUrl(target, installType);
 
     if (installAccepted) {
+      const reallyInstalled = await waitForAppInstalled(APP_INSTALLED_WAIT_MS);
+      track(reallyInstalled ? 'app_installed_confirmed' : 'app_installed_wait_timeout');
       installed = true;
       setButtonState(target, 'ready');
       return;
@@ -179,7 +269,6 @@
   }
 
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function () {
       navigator.serviceWorker
         .register(config.serviceWorkerUrl, { scope: config.serviceWorkerScope })
         .then(function (registration) {
@@ -188,11 +277,18 @@
         .catch(function (error) {
           track('service_worker_failed', { message: error.message });
         });
-    });
   }
 
   window.addEventListener('appinstalled', function () {
     installed = true;
+
+    if (appInstalledWaiters.length) {
+      const waiters = appInstalledWaiters;
+      appInstalledWaiters = [];
+      waiters.forEach(function (waiter) {
+        waiter();
+      });
+    }
 
     document.querySelectorAll('[data-pwa-install]').forEach(function (target) {
       setButtonState(target, 'ready');
@@ -216,7 +312,16 @@
     deferredPrompt = event;
     window.wpPwaBuilderInstallPrompt = event;
     track('install_prompt_available');
+
+    if (deferredPromptWaiters.length) {
+      const waiters = deferredPromptWaiters;
+      deferredPromptWaiters = [];
+      waiters.forEach(function (waiter) {
+        waiter(event);
+      });
+    }
   });
+
 
   document.addEventListener('click', function (event) {
     const installTarget = event.target.closest('[data-pwa-install]');

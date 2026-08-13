@@ -2,8 +2,8 @@
 /**
  * Plugin Name: WP PWA Builder
  * Description: Builder foundation for serving multiple PWA experiences from WordPress.
- * Version: 0.1.2
- * Author: Anastasiia & Codex
+ * Version: 0.1.3
+ * Author: Anastasiia
  * Requires PHP: 8.0
  * Requires at least: 6.0
  * Text Domain: wp-pwa-builder
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('WP_PWA_BUILDER_VERSION', '0.1.2');
+define('WP_PWA_BUILDER_VERSION', '0.1.3');
 define('WP_PWA_BUILDER_FILE', __FILE__);
 define('WP_PWA_BUILDER_DIR', plugin_dir_path(__FILE__));
 define('WP_PWA_BUILDER_URL', plugin_dir_url(__FILE__));
