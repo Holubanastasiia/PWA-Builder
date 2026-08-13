@@ -4,65 +4,61 @@ declare(strict_types=1);
 
 namespace WP_PWA_Builder;
 
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
-final class Environment
-{
-    public static function type(): string
-    {
-        return (string) apply_filters('wp_pwa_builder_environment_type', wp_get_environment_type());
-    }
+final class Environment {
 
-    public static function use_pretty_asset_urls(): bool
-    {
-        if (defined('WP_PWA_BUILDER_USE_PRETTY_ASSET_URLS')) {
-            return (bool) WP_PWA_BUILDER_USE_PRETTY_ASSET_URLS;
-        }
+	public static function type(): string {
+		return (string) apply_filters( 'wp_pwa_builder_environment_type', wp_get_environment_type() );
+	}
 
-        return (bool) apply_filters(
-            'wp_pwa_builder_use_pretty_asset_urls',
-            self::type() !== 'local'
-        );
-    }
+	public static function use_pretty_asset_urls(): bool {
+		if ( defined( 'WP_PWA_BUILDER_USE_PRETTY_ASSET_URLS' ) ) {
+			return (bool) WP_PWA_BUILDER_USE_PRETTY_ASSET_URLS;
+		}
 
-    public static function asset_url(\WP_Post $app, string $asset, int $size = 0): string
-    {
-        $asset = sanitize_key($asset);
+		return (bool) apply_filters(
+			'wp_pwa_builder_use_pretty_asset_urls',
+			self::type() !== 'local'
+		);
+	}
 
-        if (self::use_pretty_asset_urls()) {
-            if ($asset === 'manifest') {
-                return home_url('/apps/' . $app->post_name . '/manifest.webmanifest');
-            }
+	public static function asset_url( \WP_Post $app, string $asset, int $size = 0 ): string {
+		$asset = sanitize_key( $asset );
 
-            if ($asset === 'sw') {
-                return home_url('/apps/' . $app->post_name . '/sw.js');
-            }
+		if ( self::use_pretty_asset_urls() ) {
+			if ( $asset === 'manifest' ) {
+				return home_url( '/apps/' . $app->post_name . '/manifest.webmanifest' );
+			}
 
-            if ($asset === 'icon' && in_array($size, [192, 512], true)) {
-                return home_url('/apps/' . $app->post_name . '/icon-' . $size . '.png');
-            }
+			if ( $asset === 'sw' ) {
+				return home_url( '/apps/' . $app->post_name . '/sw.js' );
+			}
 
-            if (in_array($asset, ['screenshot-wide', 'screenshot-narrow'], true)) {
-                return home_url('/apps/' . $app->post_name . '/' . $asset . '.png');
-            }
-        }
+			if ( $asset === 'icon' && in_array( $size, array( 192, 512 ), true ) ) {
+				return home_url( '/apps/' . $app->post_name . '/icon-' . $size . '.png' );
+			}
 
-        $query_args = [
-            'pwa_app_slug' => $app->post_name,
-            'pwa_asset' => $asset,
-        ];
+			if ( in_array( $asset, array( 'screenshot-wide', 'screenshot-narrow' ), true ) ) {
+				return home_url( '/apps/' . $app->post_name . '/' . $asset . '.png' );
+			}
+		}
 
-        if ($asset === 'icon' && in_array($size, [192, 512], true)) {
-            $query_args['pwa_icon_size'] = $size;
-        }
+		$query_args = array(
+			'pwa_app_slug' => $app->post_name,
+			'pwa_asset'    => $asset,
+		);
 
-        return add_query_arg($query_args, home_url('/'));
-    }
+		if ( $asset === 'icon' && in_array( $size, array( 192, 512 ), true ) ) {
+			$query_args['pwa_icon_size'] = $size;
+		}
 
-    public static function start_url(\WP_Post $app): string
-    {
-        return home_url('/apps/' . $app->post_name . '/start/');
-    }
+		return add_query_arg( $query_args, home_url( '/' ) );
+	}
+
+	public static function start_url( \WP_Post $app ): string {
+		return home_url( '/apps/' . $app->post_name . '/start/' );
+	}
 }

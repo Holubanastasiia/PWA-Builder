@@ -4,29 +4,27 @@ declare(strict_types=1);
 
 namespace WP_PWA_Builder;
 
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
-final class Template_Loader
-{
-    public function hooks(): void
-    {
-        add_filter('single_template', [$this, 'load_app_template']);
-    }
+final class Template_Loader {
 
-    public function load_app_template(string $template): string
-    {
-        if (!is_singular(Post_Types::APP_POST_TYPE)) {
-            return $template;
-        }
+	public function hooks(): void {
+		add_filter( 'single_template', array( $this, 'load_app_template' ) );
+	}
 
-        $app = get_queried_object();
+	public function load_app_template( string $template ): string {
+		if ( ! is_singular( Post_Types::APP_POST_TYPE ) ) {
+			return $template;
+		}
 
-        if (!$app instanceof \WP_Post) {
-            return $template;
-        }
+		$app = get_queried_object();
 
-        return Template_Registry::template_file(Template_Registry::selected_template($app->ID));
-    }
+		if ( ! $app instanceof \WP_Post ) {
+			return $template;
+		}
+
+		return Template_Registry::template_file( Template_Registry::selected_template( $app->ID ) );
+	}
 }

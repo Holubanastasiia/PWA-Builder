@@ -4,30 +4,31 @@ declare(strict_types=1);
 
 namespace WP_PWA_Builder;
 
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
-final class Niche_Registry
-{
-    public const META_KEY = '_pwa_niche';
+final class Niche_Registry {
 
-    /**
-     * @return array<string, string>
-     */
-    public static function niches(): array
-    {
-        return apply_filters('wp_pwa_builder_niches', [
-            'igaming' => __('iGaming', 'wp-pwa-builder'),
-            'dating' => __('Dating', 'wp-pwa-builder'),
-        ]);
-    }
+	public const META_KEY = '_pwa_niche';
 
-    public static function selected_niche(int $post_id): string
-    {
-        $selected = (string) get_post_meta($post_id, self::META_KEY, true);
-        $niches = self::niches();
+	/**
+	 * @return array<string, string>
+	 */
+	public static function niches(): array {
+		return apply_filters(
+			'wp_pwa_builder_niches',
+			array(
+				'igaming' => __( 'iGaming', 'wp-pwa-builder' ),
+				'dating'  => __( 'Dating', 'wp-pwa-builder' ),
+			)
+		);
+	}
 
-        return isset($niches[$selected]) ? $selected : 'igaming';
-    }
+	public static function selected_niche( int $post_id ): string {
+		$selected = (string) get_post_meta( $post_id, self::META_KEY, true );
+		$niches   = self::niches();
+
+		return isset( $niches[ $selected ] ) ? $selected : 'igaming';
+	}
 }

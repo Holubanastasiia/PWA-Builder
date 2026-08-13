@@ -8,80 +8,75 @@ use WP_PWA_Builder\Niche_Registry;
 use WP_PWA_Builder\Post_Types;
 use WP_PWA_Builder\Template_Registry;
 
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
-final class Location_PWA_Template extends \ACF_Location
-{
-    public function initialize(): void
-    {
-        $this->name = 'pwa_template';
-        $this->label = __('PWA Template', 'wp-pwa-builder');
-        $this->category = __('PWA Builder', 'wp-pwa-builder');
-        $this->object_type = 'post';
-    }
+final class Location_PWA_Template extends \ACF_Location {
 
-    /**
-     * @param array<string, string> $rule
-     * @param array<string, mixed> $screen
-     * @param array<string, mixed> $field_group
-     */
-    public function match($rule, $screen, $field_group): bool
-    {
-        unset($field_group);
+	public function initialize(): void {
+		$this->name        = 'pwa_template';
+		$this->label       = __( 'PWA Template', 'wp-pwa-builder' );
+		$this->category    = __( 'PWA Builder', 'wp-pwa-builder' );
+		$this->object_type = 'post';
+	}
 
-        $post_id = absint($screen['post_id'] ?? 0);
+	/**
+	 * @param array<string, string> $rule
+	 * @param array<string, mixed> $screen
+	 * @param array<string, mixed> $field_group
+	 */
+	public function match( $rule, $screen, $field_group ): bool {
+		unset( $field_group );
 
-        if ($post_id <= 0) {
-            return $this->matches_operator(false, (string) ($rule['operator'] ?? '=='));
-        }
+		$post_id = absint( $screen['post_id'] ?? 0 );
 
-        $post = get_post($post_id);
+		if ( $post_id <= 0 ) {
+			return $this->matches_operator( false, (string) ( $rule['operator'] ?? '==' ) );
+		}
 
-        if (!$post instanceof \WP_Post || $post->post_type !== Post_Types::APP_POST_TYPE) {
-            return $this->matches_operator(false, (string) ($rule['operator'] ?? '=='));
-        }
+		$post = get_post( $post_id );
 
-        $selected_template = Template_Registry::selected_template($post_id);
-        $expected_template = sanitize_key((string) ($rule['value'] ?? ''));
-        $matches = $expected_template !== '' && $selected_template === $expected_template;
+		if ( ! $post instanceof \WP_Post || $post->post_type !== Post_Types::APP_POST_TYPE ) {
+			return $this->matches_operator( false, (string) ( $rule['operator'] ?? '==' ) );
+		}
 
-        return $this->matches_operator($matches, (string) ($rule['operator'] ?? '=='));
-    }
+		$selected_template = Template_Registry::selected_template( $post_id );
+		$expected_template = sanitize_key( (string) ( $rule['value'] ?? '' ) );
+		$matches           = $expected_template !== '' && $selected_template === $expected_template;
 
-    /**
-     * @param array<string, string> $rule
-     * @return array<string, string>
-     */
-    public function get_values($rule): array
-    {
-        unset($rule);
+		return $this->matches_operator( $matches, (string) ( $rule['operator'] ?? '==' ) );
+	}
 
-        $values = [];
+	/**
+	 * @param array<string, string> $rule
+	 * @return array<string, string>
+	 */
+	public function get_values( $rule ): array {
+		unset( $rule );
 
-        foreach (Template_Registry::templates() as $template_key => $template) {
-            $niches = array_map(
-                static fn(string $niche): string => Niche_Registry::niches()[$niche] ?? $niche,
-                $template['niches']
-            );
-            $suffix = $niches !== [] ? ' (' . implode(', ', $niches) . ')' : '';
+		$values = array();
 
-            $values[$template_key] = $template['name'] . $suffix;
-        }
+		foreach ( Template_Registry::templates() as $template_key => $template ) {
+			$niches = array_map(
+				static fn( string $niche ): string => Niche_Registry::niches()[ $niche ] ?? $niche,
+				$template['niches']
+			);
+			$suffix = $niches !== array() ? ' (' . implode( ', ', $niches ) . ')' : '';
 
-        return $values;
-    }
+			$values[ $template_key ] = $template['name'] . $suffix;
+		}
 
-    public function get_object_subtype($rule): string
-    {
-        unset($rule);
+		return $values;
+	}
 
-        return Post_Types::APP_POST_TYPE;
-    }
+	public function get_object_subtype( $rule ): string {
+		unset( $rule );
 
-    private function matches_operator(bool $matches, string $operator): bool
-    {
-        return $operator === '!=' ? !$matches : $matches;
-    }
+		return Post_Types::APP_POST_TYPE;
+	}
+
+	private function matches_operator( bool $matches, string $operator ): bool {
+		return $operator === '!=' ? ! $matches : $matches;
+	}
 }

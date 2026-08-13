@@ -46,6 +46,7 @@
 
   let appInstalledWaiters = [];
   const APP_INSTALLED_WAIT_MS = 10000;
+  const MIN_INSTALLING_DELAY_MS = 2500;
 
   function waitForAppInstalled(timeoutMs) {
     if (installed) {
@@ -257,7 +258,13 @@
     rememberLaunchUrl(target, installType);
 
     if (installAccepted) {
-      const reallyInstalled = await waitForAppInstalled(APP_INSTALLED_WAIT_MS);
+      const minDelay = new Promise(function (resolve) {
+        window.setTimeout(resolve, MIN_INSTALLING_DELAY_MS);
+      });
+      const [reallyInstalled] = await Promise.all([
+        waitForAppInstalled(APP_INSTALLED_WAIT_MS),
+        minDelay,
+      ]);
       track(reallyInstalled ? 'app_installed_confirmed' : 'app_installed_wait_timeout');
       installed = true;
       setButtonState(target, 'ready');

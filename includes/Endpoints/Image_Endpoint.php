@@ -7,223 +7,215 @@ namespace WP_PWA_Builder\Endpoints;
 use WP_PWA_Builder\Image_Assets\PWA_Image_Generator;
 use WP_PWA_Builder\Media;
 
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
-final class Image_Endpoint
-{
-    private PWA_Image_Generator $image_generator;
+final class Image_Endpoint {
 
-    public function __construct()
-    {
-        $this->image_generator = new PWA_Image_Generator();
-    }
+	private PWA_Image_Generator $image_generator;
 
-    public function serve_icon(\WP_Post $app, int $size): void
-    {
-        if (!in_array($size, [192, 512], true)) {
-            status_header(404);
-            exit;
-        }
+	public function __construct() {
+		$this->image_generator = new PWA_Image_Generator();
+	}
 
-        if ($this->serve_file($this->image_generator->icon_path($app, $size))) {
-            exit;
-        }
+	public function serve_icon( \WP_Post $app, int $size ): void {
+		if ( ! in_array( $size, array( 192, 512 ), true ) ) {
+			status_header( 404 );
+			exit;
+		}
 
-        if ($this->image_generator->generate_icon($app, $size) && $this->serve_file($this->image_generator->icon_path($app, $size))) {
-            exit;
-        }
+		if ( $this->serve_file( $this->image_generator->icon_path( $app, $size ) ) ) {
+			exit;
+		}
 
-        if ($this->serve_uploaded_icon($app, $size)) {
-            exit;
-        }
+		if ( $this->image_generator->generate_icon( $app, $size ) && $this->serve_file( $this->image_generator->icon_path( $app, $size ) ) ) {
+			exit;
+		}
 
-        if (!function_exists('imagecreatetruecolor')) {
-            status_header(404);
-            exit;
-        }
+		if ( $this->serve_uploaded_icon( $app, $size ) ) {
+			exit;
+		}
 
-        $theme_color = (string) get_post_meta($app->ID, '_pwa_theme_color', true);
-        $background_color = $this->hex_to_rgb($theme_color ?: '#121212');
-        $accent_color = $this->hex_to_rgb('#22c55e');
+		if ( ! function_exists( 'imagecreatetruecolor' ) ) {
+			status_header( 404 );
+			exit;
+		}
 
-        nocache_headers();
-        header('Content-Type: image/png');
+		$theme_color      = (string) get_post_meta( $app->ID, '_pwa_theme_color', true );
+		$background_color = $this->hex_to_rgb( $theme_color ?: '#121212' );
+		$accent_color     = $this->hex_to_rgb( '#22c55e' );
 
-        $image = imagecreatetruecolor($size, $size);
-        imagealphablending($image, true);
-        imagesavealpha($image, true);
+		nocache_headers();
+		header( 'Content-Type: image/png' );
 
-        $background = imagecolorallocate($image, $background_color[0], $background_color[1], $background_color[2]);
-        $accent = imagecolorallocate($image, $accent_color[0], $accent_color[1], $accent_color[2]);
-        $white = imagecolorallocate($image, 255, 255, 255);
+		$image = imagecreatetruecolor( $size, $size );
+		imagealphablending( $image, true );
+		imagesavealpha( $image, true );
 
-        imagefilledrectangle($image, 0, 0, $size, $size, $background);
-        imagefilledellipse($image, (int) ($size * 0.72), (int) ($size * 0.72), (int) ($size * 0.2), (int) ($size * 0.2), $accent);
+		$background = imagecolorallocate( $image, $background_color[0], $background_color[1], $background_color[2] );
+		$accent     = imagecolorallocate( $image, $accent_color[0], $accent_color[1], $accent_color[2] );
+		$white      = imagecolorallocate( $image, 255, 255, 255 );
 
-        $letter = $this->icon_letter(get_the_title($app));
-        $font = 5;
-        $text_width = imagefontwidth($font) * strlen($letter);
-        $text_height = imagefontheight($font);
-        imagestring($image, $font, (int) (($size - $text_width) / 2), (int) (($size - $text_height) / 2), $letter, $white);
+		imagefilledrectangle( $image, 0, 0, $size, $size, $background );
+		imagefilledellipse( $image, (int) ( $size * 0.72 ), (int) ( $size * 0.72 ), (int) ( $size * 0.2 ), (int) ( $size * 0.2 ), $accent );
 
-        imagepng($image);
-        imagedestroy($image);
-        exit;
-    }
+		$letter      = $this->icon_letter( get_the_title( $app ) );
+		$font        = 5;
+		$text_width  = imagefontwidth( $font ) * strlen( $letter );
+		$text_height = imagefontheight( $font );
+		imagestring( $image, $font, (int) ( ( $size - $text_width ) / 2 ), (int) ( ( $size - $text_height ) / 2 ), $letter, $white );
 
-    public function serve_screenshot(\WP_Post $app, string $asset): void
-    {
-        if (!function_exists('imagecreatetruecolor')) {
-            status_header(404);
-            exit;
-        }
+		imagepng( $image );
+		imagedestroy( $image );
+		exit;
+	}
 
-        $is_wide = $asset === 'screenshot-wide';
-        $width = $is_wide ? 1280 : 390;
-        $height = $is_wide ? 720 : 844;
+	public function serve_screenshot( \WP_Post $app, string $asset ): void {
+		if ( ! function_exists( 'imagecreatetruecolor' ) ) {
+			status_header( 404 );
+			exit;
+		}
 
-        if ($this->serve_file($this->image_generator->screenshot_path($app, $asset))) {
-            exit;
-        }
+		$is_wide = $asset === 'screenshot-wide';
+		$width   = $is_wide ? 1280 : 390;
+		$height  = $is_wide ? 720 : 844;
 
-        if ($this->image_generator->generate_screenshot($app, $asset) && $this->serve_file($this->image_generator->screenshot_path($app, $asset))) {
-            exit;
-        }
+		if ( $this->serve_file( $this->image_generator->screenshot_path( $app, $asset ) ) ) {
+			exit;
+		}
 
-        $theme_color = (string) get_post_meta($app->ID, '_pwa_theme_color', true);
-        $background_color = $this->hex_to_rgb($theme_color ?: '#121212');
-        $panel_color = $this->hex_to_rgb('#ffffff');
-        $accent_color = $this->hex_to_rgb('#22c55e');
+		if ( $this->image_generator->generate_screenshot( $app, $asset ) && $this->serve_file( $this->image_generator->screenshot_path( $app, $asset ) ) ) {
+			exit;
+		}
 
-        nocache_headers();
-        header('Content-Type: image/png');
+		$theme_color      = (string) get_post_meta( $app->ID, '_pwa_theme_color', true );
+		$background_color = $this->hex_to_rgb( $theme_color ?: '#121212' );
+		$panel_color      = $this->hex_to_rgb( '#ffffff' );
+		$accent_color     = $this->hex_to_rgb( '#22c55e' );
 
-        $image = imagecreatetruecolor($width, $height);
-        imagealphablending($image, true);
-        imagesavealpha($image, true);
+		nocache_headers();
+		header( 'Content-Type: image/png' );
 
-        $background = imagecolorallocate($image, $background_color[0], $background_color[1], $background_color[2]);
-        $panel = imagecolorallocate($image, $panel_color[0], $panel_color[1], $panel_color[2]);
-        $accent = imagecolorallocate($image, $accent_color[0], $accent_color[1], $accent_color[2]);
-        $text = imagecolorallocate($image, 24, 24, 27);
+		$image = imagecreatetruecolor( $width, $height );
+		imagealphablending( $image, true );
+		imagesavealpha( $image, true );
 
-        imagefilledrectangle($image, 0, 0, $width, $height, $background);
+		$background = imagecolorallocate( $image, $background_color[0], $background_color[1], $background_color[2] );
+		$panel      = imagecolorallocate( $image, $panel_color[0], $panel_color[1], $panel_color[2] );
+		$accent     = imagecolorallocate( $image, $accent_color[0], $accent_color[1], $accent_color[2] );
+		$text       = imagecolorallocate( $image, 24, 24, 27 );
 
-        $margin = $is_wide ? 96 : 28;
-        imagefilledrectangle($image, $margin, $margin, $width - $margin, $height - $margin, $panel);
-        imagefilledrectangle($image, $margin, $margin, $width - $margin, $margin + ($is_wide ? 12 : 8), $accent);
+		imagefilledrectangle( $image, 0, 0, $width, $height, $background );
 
-        imagestring($image, 5, $margin + 32, $margin + 44, $this->screenshot_title(get_the_title($app)), $text);
-        imagestring($image, 3, $margin + 32, $margin + 88, 'PWA preview screenshot', $text);
+		$margin = $is_wide ? 96 : 28;
+		imagefilledrectangle( $image, $margin, $margin, $width - $margin, $height - $margin, $panel );
+		imagefilledrectangle( $image, $margin, $margin, $width - $margin, $margin + ( $is_wide ? 12 : 8 ), $accent );
 
-        imagepng($image);
-        imagedestroy($image);
-        exit;
-    }
+		imagestring( $image, 5, $margin + 32, $margin + 44, $this->screenshot_title( get_the_title( $app ) ), $text );
+		imagestring( $image, 3, $margin + 32, $margin + 88, 'PWA preview screenshot', $text );
 
-    private function serve_uploaded_icon(\WP_Post $app, int $size): bool
-    {
-        $icon_id = Media::app_icon_id($app);
+		imagepng( $image );
+		imagedestroy( $image );
+		exit;
+	}
 
-        if ($icon_id <= 0) {
-            return false;
-        }
+	private function serve_uploaded_icon( \WP_Post $app, int $size ): bool {
+		$icon_id = Media::app_icon_id( $app );
 
-        $icon_path = get_attached_file($icon_id);
+		if ( $icon_id <= 0 ) {
+			return false;
+		}
 
-        if (!is_string($icon_path) || !is_readable($icon_path)) {
-            return false;
-        }
+		$icon_path = get_attached_file( $icon_id );
 
-        $editor = wp_get_image_editor($icon_path);
+		if ( ! is_string( $icon_path ) || ! is_readable( $icon_path ) ) {
+			return false;
+		}
 
-        if (is_wp_error($editor)) {
-            return false;
-        }
+		$editor = wp_get_image_editor( $icon_path );
 
-        $resized = $editor->resize($size, $size, true);
+		if ( is_wp_error( $editor ) ) {
+			return false;
+		}
 
-        if (is_wp_error($resized)) {
-            return false;
-        }
+		$resized = $editor->resize( $size, $size, true );
 
-        $current_size = $editor->get_size();
+		if ( is_wp_error( $resized ) ) {
+			return false;
+		}
 
-        if (
-            !is_array($current_size)
-            || (int) ($current_size['width'] ?? 0) !== $size
-            || (int) ($current_size['height'] ?? 0) !== $size
-        ) {
-            return false;
-        }
+		$current_size = $editor->get_size();
 
-        nocache_headers();
-        header('Content-Type: image/png');
+		if (
+			! is_array( $current_size )
+			|| (int) ( $current_size['width'] ?? 0 ) !== $size
+			|| (int) ( $current_size['height'] ?? 0 ) !== $size
+		) {
+			return false;
+		}
 
-        $streamed = $editor->stream('image/png');
+		nocache_headers();
+		header( 'Content-Type: image/png' );
 
-        return !is_wp_error($streamed);
-    }
+		$streamed = $editor->stream( 'image/png' );
 
-    private function serve_file(string $path): bool
-    {
-        if ($path === '' || !is_readable($path)) {
-            return false;
-        }
+		return ! is_wp_error( $streamed );
+	}
 
-        clearstatcache(true, $path);
+	private function serve_file( string $path ): bool {
+		if ( $path === '' || ! is_readable( $path ) ) {
+			return false;
+		}
 
-        nocache_headers();
-        header('Content-Type: image/png');
+		clearstatcache( true, $path );
 
-        $file_size = filesize($path);
+		nocache_headers();
+		header( 'Content-Type: image/png' );
 
-        if (is_int($file_size)) {
-            header('Content-Length: ' . $file_size);
-        }
+		$file_size = filesize( $path );
 
-        readfile($path);
+		if ( is_int( $file_size ) ) {
+			header( 'Content-Length: ' . $file_size );
+		}
 
-        return true;
-    }
+		readfile( $path );
 
-    /**
-     * @return array{0: int, 1: int, 2: int}
-     */
-    private function hex_to_rgb(string $hex): array
-    {
-        $hex = ltrim($hex, '#');
+		return true;
+	}
 
-        if (strlen($hex) !== 6) {
-            return [18, 18, 18];
-        }
+	/**
+	 * @return array{0: int, 1: int, 2: int}
+	 */
+	private function hex_to_rgb( string $hex ): array {
+		$hex = ltrim( $hex, '#' );
 
-        return [
-            hexdec(substr($hex, 0, 2)),
-            hexdec(substr($hex, 2, 2)),
-            hexdec(substr($hex, 4, 2)),
-        ];
-    }
+		if ( strlen( $hex ) !== 6 ) {
+			return array( 18, 18, 18 );
+		}
 
-    private function icon_letter(string $title): string
-    {
-        if (preg_match('/[A-Za-z0-9]/', $title, $matches) === 1) {
-            return strtoupper($matches[0]);
-        }
+		return array(
+			hexdec( substr( $hex, 0, 2 ) ),
+			hexdec( substr( $hex, 2, 2 ) ),
+			hexdec( substr( $hex, 4, 2 ) ),
+		);
+	}
 
-        return 'P';
-    }
+	private function icon_letter( string $title ): string {
+		if ( preg_match( '/[A-Za-z0-9]/', $title, $matches ) === 1 ) {
+			return strtoupper( $matches[0] );
+		}
 
-    private function screenshot_title(string $title): string
-    {
-        $title = trim(wp_strip_all_tags($title));
+		return 'P';
+	}
 
-        if ($title === '') {
-            return 'PWA App';
-        }
+	private function screenshot_title( string $title ): string {
+		$title = trim( wp_strip_all_tags( $title ) );
 
-        return strlen($title) > 42 ? substr($title, 0, 39) . '...' : $title;
-    }
+		if ( $title === '' ) {
+			return 'PWA App';
+		}
+
+		return strlen( $title ) > 42 ? substr( $title, 0, 39 ) . '...' : $title;
+	}
 }

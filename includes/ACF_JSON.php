@@ -4,33 +4,30 @@ declare(strict_types=1);
 
 namespace WP_PWA_Builder;
 
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
-final class ACF_JSON
-{
-    public function hooks(): void
-    {
-        add_filter('acf/settings/load_json', [$this, 'add_load_path']);
-        add_filter('acf/settings/save_json', [$this, 'save_path']);
-    }
+final class ACF_JSON {
 
-    /**
-     * @param array<int, string> $paths
-     * @return array<int, string>
-     */
-    public function add_load_path(array $paths): array
-    {
-        $paths[] = WP_PWA_BUILDER_DIR . 'acf-json';
+	public function hooks(): void {
+		add_filter( 'acf/settings/load_json', array( $this, 'add_load_path' ) );
+		add_filter( 'acf/settings/save_json', array( $this, 'save_path' ) );
+	}
 
-        return $paths;
-    }
+	/**
+	 * @param array<int, string> $paths
+	 * @return array<int, string>
+	 */
+	public function add_load_path( array $paths ): array {
+		$paths[] = WP_PWA_BUILDER_DIR . 'acf-json';
 
-    public function save_path(string $path): string
-    {
-        unset($path);
+		return $paths;
+	}
 
-        return WP_PWA_BUILDER_DIR . 'acf-json';
-    }
+	public function save_path( string $path ): string {
+		unset( $path );
+
+		return WP_PWA_BUILDER_DIR . 'acf-json';
+	}
 }

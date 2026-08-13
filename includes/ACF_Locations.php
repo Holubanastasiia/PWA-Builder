@@ -6,23 +6,21 @@ namespace WP_PWA_Builder;
 
 use WP_PWA_Builder\ACF\Location_PWA_Template;
 
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
-final class ACF_Locations
-{
-    public function hooks(): void
-    {
-        add_action('acf/init', [$this, 'register_location_types']);
-    }
+final class ACF_Locations {
 
-    public function register_location_types(): void
-    {
-        if (!function_exists('acf_register_location_type') || !class_exists('\ACF_Location')) {
-            return;
-        }
+	public function hooks(): void {
+		add_action( 'acf/init', array( $this, 'register_location_types' ) );
+	}
 
-        acf_register_location_type(Location_PWA_Template::class);
-    }
+	public function register_location_types(): void {
+		if ( ! function_exists( 'acf_register_location_type' ) || ! class_exists( '\ACF_Location' ) ) {
+			return;
+		}
+
+		acf_register_location_type( Location_PWA_Template::class );
+	}
 }
