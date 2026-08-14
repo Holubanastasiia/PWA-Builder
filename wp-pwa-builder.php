@@ -4,7 +4,7 @@
  * Description: Builder foundation for serving multiple PWA experiences from WordPress.
  * Version: 0.1.3
  * Author: Anastasiia
- * Requires PHP: 8.0
+ * Requires PHP: 8.1
  * Requires at least: 6.0
  * Text Domain: wp-pwa-builder
  */

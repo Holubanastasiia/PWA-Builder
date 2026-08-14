@@ -70,6 +70,9 @@ final class Location_PWA_Template extends \ACF_Location {
 		return $values;
 	}
 
+    /**
+     * @param array<string, string> $rule
+     */
 	public function get_object_subtype( $rule ): string {
 		unset( $rule );
 

@@ -72,7 +72,7 @@ final class Template_Registry {
 	public static function template_file( string $template_key ): string {
 		$templates = self::templates();
 
-		if ( isset( $templates[ $template_key ]['file'] ) && is_string( $templates[ $template_key ]['file'] ) ) {
+        if ( isset( $templates[ $template_key ]['file'] ) ) {
 			return $templates[ $template_key ]['file'];
 		}
 

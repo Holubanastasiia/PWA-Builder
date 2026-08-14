@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WP_PWA_Builder;
 
+use WP_PWA_Builder\Value_Objects\PWA_App_Settings;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -61,10 +63,7 @@ final class Post_Types {
 	public function render_app_meta_box( \WP_Post $post ): void {
 		wp_nonce_field( 'wp_pwa_builder_save_app', 'wp_pwa_builder_nonce' );
 
-		$short_name           = (string) get_post_meta( $post->ID, '_pwa_short_name', true );
-		$theme_color          = (string) get_post_meta( $post->ID, '_pwa_theme_color', true );
-		$background_color     = (string) get_post_meta( $post->ID, '_pwa_background_color', true );
-		$cta_url              = (string) get_post_meta( $post->ID, '_pwa_cta_url', true );
+		$settings             = PWA_App_Settings::from_post( $post );
 		$app_icon_id          = absint( get_post_meta( $post->ID, 'pwa_app_icon', true ) );
 		$screenshot_wide_id   = absint( get_post_meta( $post->ID, 'pwa_screenshot_wide', true ) );
 		$screenshot_narrow_id = absint( get_post_meta( $post->ID, 'pwa_screenshot_narrow', true ) );
@@ -96,19 +95,19 @@ final class Post_Types {
 		</p>
 		<p>
 			<label for="wp-pwa-short-name"><?php esc_html_e( 'Short name', 'wp-pwa-builder' ); ?></label>
-			<input class="widefat" id="wp-pwa-short-name" name="wp_pwa_short_name" value="<?php echo esc_attr( $short_name ); ?>" maxlength="24">
+			<input class="widefat" id="wp-pwa-short-name" name="wp_pwa_short_name" value="<?php echo esc_attr( $settings->short_name ); ?>" maxlength="24">
 		</p>
 		<p>
 			<label for="wp-pwa-theme-color"><?php esc_html_e( 'Manifest theme color', 'wp-pwa-builder' ); ?></label>
-			<input class="widefat" id="wp-pwa-theme-color" name="wp_pwa_theme_color" value="<?php echo esc_attr( $theme_color ?: '#121212' ); ?>" pattern="^#[0-9a-fA-F]{6}$">
+			<input class="widefat" id="wp-pwa-theme-color" name="wp_pwa_theme_color" value="<?php echo esc_attr( $settings->theme_color ); ?>" pattern="^#[0-9a-fA-F]{6}$">
 		</p>
 		<p>
 			<label for="wp-pwa-background-color"><?php esc_html_e( 'Manifest background color', 'wp-pwa-builder' ); ?></label>
-			<input class="widefat" id="wp-pwa-background-color" name="wp_pwa_background_color" value="<?php echo esc_attr( $background_color ?: '#ffffff' ); ?>" pattern="^#[0-9a-fA-F]{6}$">
+			<input class="widefat" id="wp-pwa-background-color" name="wp_pwa_background_color" value="<?php echo esc_attr( $settings->background_color ); ?>" pattern="^#[0-9a-fA-F]{6}$">
 		</p>
 		<p>
 			<label for="wp-pwa-cta-url"><?php esc_html_e( 'Default CTA URL', 'wp-pwa-builder' ); ?></label>
-			<input class="widefat" id="wp-pwa-cta-url" name="wp_pwa_cta_url" value="<?php echo esc_attr( $cta_url ); ?>" type="url">
+			<input class="widefat" id="wp-pwa-cta-url" name="wp_pwa_cta_url" value="<?php echo esc_attr( $settings->cta_url ); ?>" type="url">
 		</p>
 		<?php
 		$this->render_media_field(
@@ -173,8 +172,8 @@ final class Post_Types {
 		update_post_meta( $post_id, Niche_Registry::META_KEY, $niche );
 		update_post_meta( $post_id, Template_Registry::META_KEY, $template );
 		update_post_meta( $post_id, '_pwa_short_name', $short_name );
-		update_post_meta( $post_id, '_pwa_theme_color', $theme_color ?: '#121212' );
-		update_post_meta( $post_id, '_pwa_background_color', $background_color ?: '#ffffff' );
+		update_post_meta( $post_id, '_pwa_theme_color', $theme_color ?: PWA_App_Settings::DEFAULT_THEME_COLOR );
+		update_post_meta( $post_id, '_pwa_background_color', $background_color ?: PWA_App_Settings::DEFAULT_BACKGROUND_COLOR );
 		update_post_meta( $post_id, '_pwa_cta_url', $cta_url );
 		update_post_meta( $post_id, 'pwa_app_icon', $app_icon_id );
 		update_post_meta( $post_id, 'pwa_screenshot_wide', $screenshot_wide_id );

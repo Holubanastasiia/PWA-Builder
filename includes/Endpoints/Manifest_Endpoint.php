@@ -6,6 +6,7 @@ namespace WP_PWA_Builder\Endpoints;
 
 use WP_PWA_Builder\Media;
 use WP_PWA_Builder\PWA_Endpoints;
+use WP_PWA_Builder\Value_Objects\PWA_App_Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -17,22 +18,21 @@ final class Manifest_Endpoint {
 		nocache_headers();
 		header( 'Content-Type: application/manifest+json; charset=utf-8' );
 
-		$theme_color      = (string) get_post_meta( $app->ID, '_pwa_theme_color', true );
-		$background_color = (string) get_post_meta( $app->ID, '_pwa_background_color', true );
-		$scope_url        = home_url( '/apps/' . $app->post_name . '/' );
+		$settings  = PWA_App_Settings::from_post( $app );
+		$scope_url = home_url( '/apps/' . $app->post_name . '/' );
 
 		echo wp_json_encode(
 			array(
 				'id'               => $scope_url,
 				'name'             => get_the_title( $app ),
-				'short_name'       => $this->app_short_name( $app ),
+				'short_name'       => $this->app_short_name( $app, $settings ),
 				'description'      => wp_strip_all_tags( (string) get_the_excerpt( $app ) ),
 				'start_url'        => PWA_Endpoints::start_url( $app ),
 				'scope'            => $scope_url,
 				'display'          => 'standalone',
 				'orientation'      => 'portrait-primary',
-				'background_color' => $background_color ?: '#ffffff',
-				'theme_color'      => $theme_color ?: '#121212',
+				'background_color' => $settings->background_color,
+				'theme_color'      => $settings->theme_color,
 				'icons'            => apply_filters( 'wp_pwa_builder_manifest_icons', Media::manifest_icons( $app ), $app ),
 				'screenshots'      => apply_filters( 'wp_pwa_builder_manifest_screenshots', Media::manifest_screenshots( $app ), $app ),
 			),
@@ -41,9 +41,7 @@ final class Manifest_Endpoint {
 		exit;
 	}
 
-	private function app_short_name( \WP_Post $app ): string {
-		$short_name = (string) get_post_meta( $app->ID, '_pwa_short_name', true );
-
-		return $short_name !== '' ? $short_name : wp_trim_words( get_the_title( $app ), 3, '' );
+	private function app_short_name( \WP_Post $app, PWA_App_Settings $settings ): string {
+		return $settings->short_name !== '' ? $settings->short_name : wp_trim_words( get_the_title( $app ), 3, '' );
 	}
 }

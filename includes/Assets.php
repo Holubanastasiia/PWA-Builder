@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WP_PWA_Builder;
 
+use WP_PWA_Builder\Value_Objects\PWA_App_Settings;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -102,14 +104,14 @@ final class Assets {
 			return;
 		}
 
-		$theme_color  = (string) get_post_meta( $app->ID, '_pwa_theme_color', true );
+		$settings     = PWA_App_Settings::from_post( $app );
 		$manifest_url = PWA_Endpoints::asset_url( $app, 'manifest' );
 
 		printf( '<link rel="manifest" href="%s">' . "\n", esc_url( $manifest_url ) );
-		printf( '<meta name="theme-color" content="%s">' . "\n", esc_attr( $theme_color ?: '#121212' ) );
+		printf( '<meta name="theme-color" content="%s">' . "\n", esc_attr( $settings->theme_color ) );
 		echo '<meta name="mobile-web-app-capable" content="yes">' . "\n";
 		echo '<meta name="apple-mobile-web-app-capable" content="yes">' . "\n";
-		printf( '<meta name="apple-mobile-web-app-title" content="%s">' . "\n", esc_attr( $this->app_short_name( $app ) ) );
+		printf( '<meta name="apple-mobile-web-app-title" content="%s">' . "\n", esc_attr( $this->app_short_name( $app, $settings ) ) );
 
 		if ( ! PWA_Endpoints::is_launch_request() && ! is_preview() ) {
 			$start_url = PWA_Endpoints::start_url( $app );
@@ -136,10 +138,8 @@ final class Assets {
 		}
 	}
 
-	private function app_short_name( \WP_Post $app ): string {
-		$short_name = (string) get_post_meta( $app->ID, '_pwa_short_name', true );
-
-		return $short_name !== '' ? $short_name : wp_trim_words( get_the_title( $app ), 3, '' );
+	private function app_short_name( \WP_Post $app, PWA_App_Settings $settings ): string {
+		return $settings->short_name !== '' ? $settings->short_name : wp_trim_words( get_the_title( $app ), 3, '' );
 	}
 
 	private function enqueue_template_assets( \WP_Post $app ): void {

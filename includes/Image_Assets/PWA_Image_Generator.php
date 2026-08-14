@@ -134,6 +134,7 @@ final class PWA_Image_Generator {
 
 	private function app_dir( \WP_Post $app ): string {
 		$upload_dir = wp_upload_dir( null, false );
+        // @phpstan-ignore function.alreadyNarrowedType, nullCoalesce.offset (defensive: multisite/edge-case upload dir configs aren't guaranteed to match the core stub shape)
 		$base_dir   = is_string( $upload_dir['basedir'] ?? null ) ? $upload_dir['basedir'] : '';
 
 		if ( $base_dir === '' ) {
@@ -160,7 +161,7 @@ final class PWA_Image_Generator {
 
 		$source_width  = imagesx( $source_image );
 		$source_height = imagesy( $source_image );
-
+        // @phpstan-ignore smallerOrEqual.alwaysFalse, smallerOrEqual.alwaysFalse, booleanOr.alwaysFalse (defensive: guards against a corrupted/degenerate source image producing a zero-sized GD resource, which the core stub doesn't model; removing this risks a DivisionByZeroError a few lines below)
 		if ( $source_width <= 0 || $source_height <= 0 ) {
 			imagedestroy( $source_image );
 			return false;
@@ -216,7 +217,7 @@ final class PWA_Image_Generator {
 	}
 
 	/**
-	 * @return resource|\GdImage|false
+	 * @return \GdImage|false
 	 */
 	private function create_image_resource( string $source ) {
 		$mime_type = wp_get_image_mime( $source );
@@ -250,9 +251,9 @@ final class PWA_Image_Generator {
 
 		$image_size = getimagesize( $path );
 
-		return is_array( $image_size )
-			&& (int) ( $image_size[0] ?? 0 ) === $width
-			&& (int) ( $image_size[1] ?? 0 ) === $height;
+        return is_array( $image_size )
+            && $image_size[0] === $width
+            && $image_size[1] === $height;
 	}
 
 	private function delete_file( string $path ): void {

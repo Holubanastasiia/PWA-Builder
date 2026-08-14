@@ -6,6 +6,7 @@ namespace WP_PWA_Builder\Endpoints;
 
 use WP_PWA_Builder\Image_Assets\PWA_Image_Generator;
 use WP_PWA_Builder\Media;
+use WP_PWA_Builder\Value_Objects\PWA_App_Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -42,8 +43,8 @@ final class Image_Endpoint {
 			exit;
 		}
 
-		$theme_color      = (string) get_post_meta( $app->ID, '_pwa_theme_color', true );
-		$background_color = $this->hex_to_rgb( $theme_color ?: '#121212' );
+		$settings         = PWA_App_Settings::from_post( $app );
+		$background_color = $this->hex_to_rgb( $settings->theme_color );
 		$accent_color     = $this->hex_to_rgb( '#22c55e' );
 
 		nocache_headers();
@@ -89,8 +90,8 @@ final class Image_Endpoint {
 			exit;
 		}
 
-		$theme_color      = (string) get_post_meta( $app->ID, '_pwa_theme_color', true );
-		$background_color = $this->hex_to_rgb( $theme_color ?: '#121212' );
+		$settings         = PWA_App_Settings::from_post( $app );
+		$background_color = $this->hex_to_rgb( $settings->theme_color );
 		$panel_color      = $this->hex_to_rgb( '#ffffff' );
 		$accent_color     = $this->hex_to_rgb( '#22c55e' );
 
@@ -146,14 +147,15 @@ final class Image_Endpoint {
 		}
 
 		$current_size = $editor->get_size();
+        // @phpstan-ignore function.alreadyNarrowedType (defensive: WP_Image_Editor implementations aren't guaranteed to match the core stub shape exactly)
+        if ( ! is_array( $current_size ) ) {
+            return false;
+        }
 
-		if (
-			! is_array( $current_size )
-			|| (int) ( $current_size['width'] ?? 0 ) !== $size
-			|| (int) ( $current_size['height'] ?? 0 ) !== $size
-		) {
-			return false;
-		}
+        // @phpstan-ignore nullCoalesce.offset, nullCoalesce.offset (defensive: see above)
+        if ( (int) ( $current_size['width'] ?? 0 ) !== $size || (int) ( $current_size['height'] ?? 0 ) !== $size ) {
+            return false;
+        }
 
 		nocache_headers();
 		header( 'Content-Type: image/png' );
@@ -162,7 +164,9 @@ final class Image_Endpoint {
 
 		return ! is_wp_error( $streamed );
 	}
-
+    /**
+     * @phpstan-impure
+     */
 	private function serve_file( string $path ): bool {
 		if ( $path === '' || ! is_readable( $path ) ) {
 			return false;
