@@ -71,8 +71,8 @@ final class Template_Registry {
 
 	public static function template_file( string $template_key ): string {
 		$templates = self::templates();
-
-        if ( isset( $templates[ $template_key ]['file'] ) ) {
+        // @phpstan-ignore booleanAnd.rightAlwaysTrue (defensive: 'file' comes from the filterable wp_pwa_builder_templates hook, so external filters could return a non-string despite our own type-shaped docblock)
+        if ( isset( $templates[ $template_key ]['file'] ) && is_string( $templates[ $template_key ]['file'] ) ) {
 			return $templates[ $template_key ]['file'];
 		}
 

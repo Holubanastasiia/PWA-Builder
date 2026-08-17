@@ -1,7 +1,6 @@
 {
   "name": "anastasiia/wp-pwa-builder",
   "description": "WordPress plugin foundation for building multiple PWA experiences.",
-  "version": "0.1.2",
   "type": "wordpress-plugin",
   "license": "proprietary",
   "require": {

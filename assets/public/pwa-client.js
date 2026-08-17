@@ -133,7 +133,9 @@
     target.textContent = target.dataset.pwaOriginalLabel || buttonLabel(target, 'default', 'Continue');
   }
 
-  //debugging function. delete after debug
+  // Тимчасовий QA-інструмент: вмикає детальне логування в консоль через ?pwa_debug=1,
+  // щоб перевіряти таймінги install-флоу на реальних пристроях/проді.
+  // Прибрати після підтвердження коректної роботи на продакшені — цей інструмент більше не буде потрібен.
   function isDebugEnabled() {
     try {
       if (/[?&]pwa_debug=1\b/.test(window.location.search)) {

@@ -15,7 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WP_PWA_BUILDER_VERSION', '0.1.3' );
+$wp_pwa_builder_plugin_data = get_file_data( __FILE__, array( 'Version' => 'Version' ) );
+
+define( 'WP_PWA_BUILDER_VERSION', $wp_pwa_builder_plugin_data['Version'] );
 define( 'WP_PWA_BUILDER_FILE', __FILE__ );
 define( 'WP_PWA_BUILDER_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WP_PWA_BUILDER_URL', plugin_dir_url( __FILE__ ) );
